@@ -8,52 +8,57 @@ import {
   designPortfolio,
   brandPortfolio
 } from '../../data';
+import axios from 'axios';
 
 export default function Portfolio() {
+
   const [selected, setSelected] = useState("featured");
-  const [data, setData] = useState([]);
-  const list = [
-    {
-      id:"featured",
-      title:"Featured"
-    },
-    {
-      id:"web",
-      title:"Web App"
-    },
-    {
-      id:"mobile",
-      title:"Mobile App"
-    },
-    {
-      id:"design",
-      title:"Designing"
-    },
-    {
-      id:"brand",
-      title:"Branding"
-    }
-  ];
+  const [data, setEvent] = useState([]);
+  const [list, setList] = useState([]);
+  const [url, setUrl] = useState("");
+
+  function getPortMenus() {
+    axios.get("http://127.0.0.1:8000/api/menus")
+        .then(response => response.data)
+        .then((data) => {
+          setList(data);
+        });
+  }
+
+  function getPortMenuChilds(unique_id) {
+    axios.get("http://127.0.0.1:8000/api/menus/"+unique_id)
+        .then(response => response.data)
+        .then((data) => {
+          console.log(data.menuChilds[0].childs);
+          setEvent(data.menuChilds[0].childs);
+          setUrl(data.url);
+        });
+  }
+
+  useEffect(()=>{
+    getPortMenus();
+    // getPortMenuChilds();
+  },[])
 
   useEffect(()=> {
     switch (selected) {
       case "featured":
-        setData(featuredPortfolio);
+        getPortMenuChilds("featured");
         break;
       case "web":
-        setData(webPortfolio);
+        getPortMenuChilds("web");
         break;
-      case "mobile":
-        setData(mobilePortfolio);
+      case "mobileapp":
+        getPortMenuChilds("mobileapp");
         break;
-      case "design":
-        setData(designPortfolio);
+      case "graphicsdesign":
+        getPortMenuChilds("graphicsdesign");
         break;
-      case "brand":
-        setData(brandPortfolio);
+      case "planning&research":
+        getPortMenuChilds("planning&research");
         break;
       default:
-          setData(featuredPortfolio);
+        getPortMenuChilds("featured");
     }
   }, [selected]);
 
@@ -64,16 +69,16 @@ export default function Portfolio() {
         {list.map((item) => (
           <PortfolioList
            title={item.title}
-           active={selected === item.id}
+           active={selected === item.unique_id}
            setSelected={setSelected}
-           id={item.id}
+           id={item.unique_id}
           />
         ))}
       </ul>
       <div className="container">
         {data.map((singleData) => (
           <div className="item">
-            <img src={singleData.img} alt="" />
+            <img src={url + singleData.image} alt="" />
             <h3>{singleData.title}</h3>
           </div>
         ))}
